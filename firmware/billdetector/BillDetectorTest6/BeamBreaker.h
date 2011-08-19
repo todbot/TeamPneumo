@@ -28,6 +28,7 @@
  */
 
 
+const int changeType = CHANGE;  // can be RISING, CHANGE or FALLING
 
 volatile unsigned long detectAMillis;
 volatile unsigned long detectBMillis;
@@ -91,7 +92,6 @@ void BeamBreaker_begin()
   digitalWrite(irDetectB0Pin, HIGH); // internal pullup
   digitalWrite(irDetectB1Pin, HIGH); // internal pullup
 
-  const int changeType = FALLING;  // can be RISING, CHANGE or FALLING
 
   PCintPort::attachInterrupt(irDetectA0Pin, BeamBreaker_detectA0, changeType); 
   PCintPort::attachInterrupt(irDetectA1Pin, BeamBreaker_detectA1, changeType); 
