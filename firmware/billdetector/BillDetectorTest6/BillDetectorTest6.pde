@@ -1,6 +1,6 @@
 /**
  *
- * BillDetectorTest6
+ * BillDetectorTest6 -- testing out the 'billdetector1b' board
  *
  * 2011, Tod E. Kurt, http://todbot.com/blog/
  *
