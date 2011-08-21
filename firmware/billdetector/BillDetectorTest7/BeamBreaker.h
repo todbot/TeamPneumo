@@ -36,6 +36,11 @@ volatile unsigned long detectBMillis;
 volatile unsigned int cnt;
 volatile unsigned char type;  // super hack, heck all of these vars are
 
+typedef void (*function)(void);
+
+function eventFunc;
+function eventAFunc;
+function eventBFunc;
 
 // internal func for pinchange int, must be fast!
 // first sensor ring
@@ -71,8 +76,10 @@ void BeamBreaker_detectB1()
 }
 
 // put this in setup()
-void BeamBreaker_begin()
-//void BeamBreaker_begin( void (*function)()) func_a, void (*function)()) func_b )
+//void BeamBreaker_begin()
+void BeamBreaker_begin( function anyeventfunc, 
+                        function eventAfunc, 
+                        function eventBfunc )
 {
   pinMode( irOutPin,     OUTPUT);
   pinMode( irEnableA0Pin,OUTPUT);
@@ -89,6 +96,7 @@ void BeamBreaker_begin()
   pinMode( irDetectA1Pin,  INPUT); 
   pinMode( irDetectB0Pin,  INPUT);
   pinMode( irDetectB1Pin,  INPUT);
+
   digitalWrite(irDetectA0Pin, HIGH); // internal pullup
   digitalWrite(irDetectA1Pin, HIGH); // internal pullup
   digitalWrite(irDetectB0Pin, HIGH); // internal pullup
@@ -100,6 +108,9 @@ void BeamBreaker_begin()
   PCintPort::attachInterrupt(irDetectB0Pin, BeamBreaker_detectB0, changeType); 
   PCintPort::attachInterrupt(irDetectB1Pin, BeamBreaker_detectB1, changeType); 
 
+  eventFunc  = anyeventfunc;
+  eventAFunc = eventAfunc;
+  eventAFunc = eventBfunc;
 }
 
 
@@ -107,52 +118,23 @@ void BeamBreaker_begin()
 // FIXME: this sucks
 void BeamBreaker_check()
 {
+  if( detectAMillis || detectBMillis ) {
+    Serial.println("any");
+    if( eventFunc != NULL ) eventFunc();
+  }
+
   if( detectAMillis ) { 
-    digitalWrite( ledStatusPin, HIGH);
-
-    Serial.print("detectAMillis: "); 
-    Serial.print(type); Serial.print(':');
-    Serial.println(detectAMillis);
-
-    playTone( beepPin, NOTE_C, 20 );
-    digitalWrite( ledStatusPin, LOW);
+    Serial.println("A");
+    if( eventAFunc != NULL ) eventAFunc();
     detectAMillis = 0;
     type = '.';
   }
   if( detectBMillis ) { 
-    digitalWrite( ledStatusPin, HIGH);
-
-    Serial.print("detectBMillis: ");
-    Serial.print(type); Serial.print(':');
-    Serial.println(detectBMillis);
-
-    playTone( beepPin, NOTE_C1, 20 );
-    digitalWrite( ledStatusPin, LOW);
+    Serial.println("B");
+    if( eventBFunc != NULL ) eventBFunc();
     detectBMillis = 0;
     type = '.';
   }
-      
-  /*
-  if( detectBMillis ) {
-    int diff = abs(detectBMillis - detectAMillis);
-    if( detectAMillis == 0 ) {
-      Serial.println("***oops, no detectA");
-    }
-    digitalWrite( irEnableA0Pin, LOW );  // turn off LEDA
-    digitalWrite( irEnableB0Pin, LOW );  // turn off LEDB
-
-    Serial.print("detectBMillis: "); Serial.println(detectBMillis);
-    Serial.print("diff: "); Serial.println( diff );
-
-    detectAMillis = 0;
-    detectBMillis = 0;
-
-    digitalWrite( ledStatusPin, LOW);
-    playTone( beepPin, NOTE_C1, 50 );
-
-    digitalWrite( irEnableA0Pin, HIGH );  // turn on LEDA
-    digitalWrite( irEnableB0Pin, HIGH );  // turn on LEDB
-  }
-  */
+  
 }
 
