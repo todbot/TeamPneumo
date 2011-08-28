@@ -1,6 +1,6 @@
 /**
  *
- * BillDetectorV1 -- testing out the 'billdetector1d' board
+ * BillDetectorTest7 -- testing out the 'billdetector1b' board
  *
  * 2011, Tod E. Kurt, http://todbot.com/blog/
  *
@@ -53,7 +53,6 @@ const int sclPin        = A5;
 
 const long IRFREQ_56K  = 56e3;
 const long IRFREQ_38K  = 38e3;
-
 const long IRFREQ_HZ   = IRFREQ_38K;
 const int  IRFREQ_DUTY = 33;  // percent
 
@@ -80,7 +79,7 @@ void setup()
   BeamBreaker_begin( beamBreak, beamABreak, beamBBreak ); 
 
   Serial.begin(19200);
-  Serial.println( "BillDetectorV1" );
+  Serial.println( "BillDetectorTest7" );
 
   FreqOutT2_setFreq( IRFREQ_HZ, IRFREQ_DUTY );
   FreqOutT2_on();  // and _off() to turn off
@@ -149,6 +148,7 @@ void beamABreak()
   playTone( beepPin, NOTE_C, 20 );
 
   digitalWrite( ledStatusPin, LOW);
+
 }
 
 // for testing, not for normal use
@@ -159,15 +159,16 @@ void beamBBreak()
   playTone( beepPin, NOTE_C1, 20 );
 
   digitalWrite( ledStatusPin, LOW);
+
 }
 
 // just a silly thing to let you know it's online
 void fanfare()
 {
   if( IRFREQ_HZ == IRFREQ_56K ) 
-    playTone( beepPin, NOTE_C1, 75 );
+    playTone( beepPin, NOTE_C1, 50 );
   else 
-    playTone( beepPin, NOTE_C, 75 );
+    playTone( beepPin, NOTE_C, 50 );
 
   for( int i=0; i< 2; i++ ) { 
     digitalWrite( irEnableA0Pin, LOW );
