@@ -38,7 +38,7 @@ volatile unsigned long detectBMillis;
 volatile unsigned int cnt;
 volatile unsigned char type;  // super hack, heck all of these vars are
 
-typedef void (*function)(void);
+typedef void (*function)(void);  // define type "function" as a no-arg func ptr
 
 function eventFunc;
 function eventAFunc;

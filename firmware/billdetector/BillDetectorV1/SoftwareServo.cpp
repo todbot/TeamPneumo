@@ -1,3 +1,6 @@
+//
+//
+//
 
 #include "SoftwareServo.h"
 
@@ -17,6 +20,24 @@ void SoftwareServo::setMaximumPulse(uint16_t t)
 {
   max16 = t/16;
 }
+
+void SoftwareServo::setEasing(uint16_t e)
+{
+
+}
+
+/*
+// Quad easing thanks to Robert Penner
+// variables used are type "float" so that you can throw smaller numbers at it and it will still work well
+float Quad_easeInOut(float t, float fixedScaleStart, float fixedScaleEnd){
+  // float b = 0, c = 1, d = 1;
+  float b = fixedScaleStart;
+  float c = fixedScaleEnd - fixedScaleStart;
+  float d = fixedScaleEnd;
+  if ((t/=d/2) < 1) return c/2*t*t + b;
+  return -c/2 * ((--t)*(t-2) - 1) + b;
+}
+*/
 
 uint8_t SoftwareServo::attach(int pinArg)
 {

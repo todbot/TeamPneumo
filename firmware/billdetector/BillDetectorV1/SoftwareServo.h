@@ -25,6 +25,7 @@ class SoftwareServo
   uint8_t attached();
   void setMinimumPulse(uint16_t);  // pulse length for 0 degrees in microseconds, 540uS default
   void setMaximumPulse(uint16_t);  // pulse length for 180 degrees in microseconds, 2400uS default
+  void setEasing(uint16_t);
   static void refresh();    // must be called at least every 50ms or so to keep servo alive
   // you can call more often, it won't happen more than once every 20ms
 };
