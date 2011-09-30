@@ -86,6 +86,11 @@ uint8_t SoftwareServo::attached()
   return 0;
 }
 
+void SoftwareServo::disable()
+{
+    pulse0 = 0;
+}
+
 void SoftwareServo::refresh()
 {
   uint8_t count = 0, i = 0;

@@ -20,6 +20,7 @@ class SoftwareServo
   uint8_t attach(int);     // attach to a pin, sets pinMode, returns 0 on failure, won't
   // position the servo until a subsequent write() happens
   void detach();
+  void disable();          // disable servo update, write() to re-enable
   void write(int);         // specify the angle in degrees, 0 to 180
   uint8_t read();
   uint8_t attached();

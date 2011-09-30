@@ -1,8 +1,10 @@
 /**
  *
- * BillDetectorTest7 -- testing out the 'billdetector1b' board
+ * BillDetectorV1 -- Bill detector, bell ringer, & spinnybit twirler for
+ *                   Cash Machine
+ *     - for use with the 'billdetector1e' Arduino shield
  *
- * 2011, Tod E. Kurt, http://todbot.com/blog/
+ * 2011, TeamPneumo, Tod E. Kurt, http://todbot.com/blog/
  *
  *
  *
@@ -79,8 +81,8 @@ void setup()
 
   digitalWrite( blinkmPin, LOW);
 
-  bellringer.attach( servo0Pin );
-  spinnybit.attach( servo1Pin );
+  bellringer.attach( bellringerPin );
+  spinnybit.attach( spinnybitPin );
 
   bellringer.write( 90 );
   spinnybit.write( 90 );
@@ -116,22 +118,28 @@ int sliceCount;      // counter of slices, goes from 0 to sliceCountMax
 int doingThingsMillis; // counter in millis from 0 to duration
 int sliceCountMax = duration/sliceDur; 
 boolean doingThings = false;
-boolean doThingsReset = true;
+//boolean doThingsReset = true;
+boolean doThingsReset = false;
 
 // called at beginning of doing things
 void doThingsStart()
 {
   Serial.println("doThingsStart");
+  //bellringer.attach( bellringerPin ); 
+  bellringer.write(180);
   digitalWrite( blinkmPin, HIGH );
-  bellringer.write(90);
 }
 
+#define NO_ANGLE (0xff)
 // called at end of doing things
 void doThingsEnd()
 {
   Serial.println("doThingsEnd");
+
   bellringer.write( 90 );
-  spinnybit.write( 90 );
+  bellringer.disable();
+
+  spinnybit.write( 84 );
   digitalWrite( blinkmPin, LOW );
 }
 
@@ -144,11 +152,12 @@ void doThingsTick()
   Serial.println( doingThingsMillis );
   
   // deal with bell ringer
-  if( sliceCount == 1 ) {
-    bellringer.write( 180 );
-  } else {
-    bellringer.write( 90 );
-  }
+  //if( sliceCount == 1 ) {
+  //  bellringer.write( 180 );
+  //} else {
+  bellringer.write( 90 );
+  //}
+
 
   // deal with blinkm 
   if( doingThingsMillis > 1000 ) {
@@ -157,9 +166,6 @@ void doThingsTick()
 
   // deal with spinnybit
   spinnybit.write( 90+ (2*(sliceCountMax-sliceCount)/3));
-  
-  //int s2val = (sliceCount % (sliceCount/4) == 0) ? HIGH:LOW;
-  //digitalWrite( servo1Pin, s2val );
   
 }
 
@@ -214,7 +220,7 @@ void beamBBreak()
 // just a silly thing to let you know it's online
 void fanfare()
 {
-  digitalWrite( blinkmPin, HIGH );
+  //digitalWrite( blinkmPin, HIGH );
   if( IRFREQ_HZ == IRFREQ_56K ) 
     playTone( beepPin, NOTE_C1, 50 );
   else 
@@ -240,7 +246,7 @@ void fanfare()
   }
   playTone( beepPin, NOTE_G,  50 );
 
-  digitalWrite( blinkmPin, LOW );
+  //digitalWrite( blinkmPin, LOW );
 }
 
 
