@@ -105,10 +105,10 @@ void BeamBreaker_begin( function anyeventfunc,
   digitalWrite(irDetectB1Pin, HIGH); // internal pullup
 
 
-  PCintPort::attachInterrupt(irDetectA0Pin, BeamBreaker_detectA0, changeType); 
-  PCintPort::attachInterrupt(irDetectA1Pin, BeamBreaker_detectA1, changeType); 
-  PCintPort::attachInterrupt(irDetectB0Pin, BeamBreaker_detectB0, changeType); 
-  PCintPort::attachInterrupt(irDetectB1Pin, BeamBreaker_detectB1, changeType); 
+  PCintPort::attachInterrupt(irDetectA0Pin, BeamBreaker_detectA0,changeType); 
+  PCintPort::attachInterrupt(irDetectA1Pin, BeamBreaker_detectA1,changeType); 
+  PCintPort::attachInterrupt(irDetectB0Pin, BeamBreaker_detectB0,changeType); 
+  PCintPort::attachInterrupt(irDetectB1Pin, BeamBreaker_detectB1,changeType); 
 
   eventFunc  = anyeventfunc;
   eventAFunc = eventAfunc;

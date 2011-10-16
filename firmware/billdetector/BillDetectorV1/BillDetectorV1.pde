@@ -100,6 +100,8 @@ void setup()
   Serial.println( "Ready.");
 }
 
+unsigned long lastMillis;
+
 //
 void loop()
 {
@@ -107,39 +109,61 @@ void loop()
 
   SoftwareServo::refresh();
 
-  eventFuse.burn(1);
   delay(1); // this makes event fuse time step mean "1 msec", FIXME
+  //delayMicroseconds(100);
+  //unsigned long m = millis();
+  //if( m > lastMillis ) {
+    eventFuse.burn(1);
+    //  lastMillis = m;
+    //}
 }
 
+//--------------------------------------------------------
+// "doThings" 
+//--------------------------------------------------------
 
 int duration = 4000; // total duration of doing things, in millis; 
 int sliceDur =  50;  // duration of timeslice within doing things
 int sliceCount;      // counter of slices, goes from 0 to sliceCountMax
 int doingThingsMillis; // counter in millis from 0 to duration
 int sliceCountMax = duration/sliceDur; 
-boolean doingThings = false;
+boolean doingThings = false;  // used by event system to track 
 //boolean doThingsReset = true;
 boolean doThingsReset = false;
+
+boolean alreadyRinging = false;
 
 // called at beginning of doing things
 void doThingsStart()
 {
   Serial.println("doThingsStart");
-  //bellringer.attach( bellringerPin ); 
-  bellringer.write(180);
+
+  // deal with bell ringer
+  //if( !alreadyRinging ) {
+    bellringer.write(180);
+    alreadyRinging = true;
+    //}
+
+  // deal with blinkm
   digitalWrite( blinkmPin, HIGH );
 }
 
-#define NO_ANGLE (0xff)
 // called at end of doing things
 void doThingsEnd()
 {
   Serial.println("doThingsEnd");
 
-  bellringer.write( 90 );
-  bellringer.disable();
+  //if( sliceCount == sliceCountMax ) {
+    alreadyRinging = false;
+    // deal with bell ringer
+    bellringer.write( 90 );
+    bellringer.disable();
+    //}
 
+  // deal with spinny bits
   spinnybit.write( 84 );
+
+  // deal with blinkm
   digitalWrite( blinkmPin, LOW );
 }
 
@@ -152,20 +176,16 @@ void doThingsTick()
   Serial.println( doingThingsMillis );
   
   // deal with bell ringer
-  //if( sliceCount == 1 ) {
-  //  bellringer.write( 180 );
-  //} else {
+  if( sliceCount == 1 ) 
   bellringer.write( 90 );
-  //}
-
 
   // deal with blinkm 
-  if( doingThingsMillis > 1000 ) {
+  if( doingThingsMillis > 2000 ) {
     digitalWrite( blinkmPin, LOW);
   }
 
   // deal with spinnybit
-  spinnybit.write( 90+ (2*(sliceCountMax-sliceCount)/3));
+  spinnybit.write( 84+ (2*(sliceCountMax-sliceCount)/3));
   
 }
 

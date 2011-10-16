@@ -22,6 +22,7 @@ class SoftwareServo
   void detach();
   void disable();          // disable servo update, write() to re-enable
   void write(int);         // specify the angle in degrees, 0 to 180
+  void write(long);        // specify the angle in 100x degrees, 0 to 18000
   uint8_t read();
   uint8_t attached();
   void setMinimumPulse(uint16_t);  // pulse length for 0 degrees in microseconds, 540uS default

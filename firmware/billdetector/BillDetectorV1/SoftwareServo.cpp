@@ -62,6 +62,12 @@ void SoftwareServo::detach()
   }
 }
 
+void SoftwareServo::write(long angleArg100x)
+{
+  pulse0 = (min16*16L*clockCyclesPerMicrosecond() + (max16-min16)*(16L*clockCyclesPerMicrosecond())*angleArg100x/18000L)/64L;
+  angle = angleArg100x/100;
+}
+
 void SoftwareServo::write(int angleArg)
 {
   if ( angleArg < 0) angleArg = 0;
