@@ -27,7 +27,7 @@
 #include "./EventFuse.h"
 #include "./SoftwareServo.h"
 
-const int suckDurationMillis = 7000;
+const int suckDurationMillis = 15000;
 const int suckButtonHoldMillis = 1000;
 
 // Pins that are used on the shield
@@ -119,8 +119,8 @@ int sliceCount;      // counter of slices, goes from 0 to sliceCountMax
 int doingThingsMillis; // counter in millis from 0 to duration
 int sliceCountMax = duration/sliceDur; 
 boolean doingThings = false;  // used by event system to track 
-boolean doThingsReset = true;
-//boolean doThingsReset = false;
+//boolean doThingsReset = true;
+boolean doThingsReset = false;
 
 // called at beginning of doing things
 void doThingsStart()
@@ -146,26 +146,31 @@ void doThingsTick()
   Serial.print(" msec: ");
   Serial.println( doingThingsMillis );
   
-  // deal with suck on/off trigger
-  if( doingThingsMillis < suckButtonHoldMillis ) { 
-    digitalWrite( onButtonPin, HIGH); // begin turn-on button press
-  }
-  else if( doingThingsMillis > suckButtonHoldMillis &&
-           doingThingsMillis < suckDurationMillis ) {
-    digitalWrite( onButtonPin, LOW);  // end turn-on button press
-  }
-  else if( doingThingsMillis > suckDurationMillis ) { 
-    digitalWrite( offButtonPin, HIGH); // begin turn-off button press
-  }
-  else if( doingThingsMillis > suckDurationMillis + suckButtonHoldMillis ) {
-    digitalWrite( offButtonPin, LOW);  // end turn-off buutton press
-  }
-
   // deal with ringlight
   //int lightval = (sliceCount % 3)==0;
   //digitalWrite( ringlightPin, blinkval );
   int lightval = 255-(sliceCount*15);
   analogWrite( ringlightPin, lightval);
+
+  // deal with suck on/off trigger
+  if( doingThingsMillis < suckButtonHoldMillis ) { 
+    digitalWrite( onButtonPin, HIGH); // begin turn-on button press
+    Serial.println("ON button high");
+  }
+  else if( doingThingsMillis > suckButtonHoldMillis &&
+           doingThingsMillis < suckDurationMillis ) {
+    digitalWrite( onButtonPin, LOW);  // end turn-on button press
+    Serial.println("ON button low");
+  }
+  else if( doingThingsMillis > suckDurationMillis &&
+           doingThingsMillis < (suckDurationMillis + suckButtonHoldMillis) ) {
+    digitalWrite( offButtonPin, HIGH); // begin turn-off button press
+    Serial.println("OFF button high");
+  }
+  else if( doingThingsMillis > (suckDurationMillis + suckButtonHoldMillis) ) {
+    digitalWrite( offButtonPin, LOW);  // end turn-off buutton press
+    Serial.println("OFF button low");
+  }
 
 }
 
