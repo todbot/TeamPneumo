@@ -24,8 +24,11 @@
 
 #include "./EventFuse.h"
 
-#include <Servo.h>
+#include <Servo.h>                // system library, only uses Timer1
 
+// set debug=0 to turn off Serial status msgs
+// set debug=1 to turn on most Serial status msgs
+// set debug=2 to turn on many Serial status msgs
 const byte debug = 1;
 
 // Pins that are used on the shield
@@ -111,7 +114,6 @@ void loop()
   BeamBreaker_check();
 
   //spinnybit.write( Easing::easeInOutCubic(pos, 0, 140, dur));
-  //SoftwareServo::refresh();
 
   delay(1); // this makes event fuse time step mean "1 msec", FIXME
   //delayMicroseconds(100);
@@ -123,7 +125,7 @@ void loop()
 }
 
 //--------------------------------------------------------
-// "doThings" 
+// "doThings" begin
 //--------------------------------------------------------
 
 int duration = 4000; // total duration of doing things, in millis; 
@@ -139,7 +141,7 @@ boolean doThingsReset = false;
 // called at beginning of doing things
 void doThingsStart()
 {
-  if( debug > 0 ) Serial.println("doThingsStart");
+  if( debug ) Serial.println("doThingsStart");
 
   // deal with bell ringer
   bellringer.attach( bellringerPin );
@@ -152,7 +154,7 @@ void doThingsStart()
 // called at end of doing things
 void doThingsEnd()
 {
-  if( debug >0 ) Serial.println("doThingsEnd");
+  if( debug ) Serial.println("doThingsEnd");
 
   // deal with bell ringer
   bellringer.write( 90 );
@@ -189,6 +191,10 @@ void doThingsTick()
   
 }
 
+//--------------------------------------------------------
+// "doThings" end
+//--------------------------------------------------------
+
 // called periodically by eventfuse system
 void thingsFuse(FuseID fuse, int userData)
 {
@@ -203,7 +209,7 @@ void thingsFuse(FuseID fuse, int userData)
 // called by BeamBreaker when any beam break occurs
 void beamBreak()
 {
-  if( debug > 0 ) Serial.println("BREAK!");
+  if( debug ) Serial.println("BREAK!");
   if( doingThings && doThingsReset ) {
     doThingsEnd();
   }

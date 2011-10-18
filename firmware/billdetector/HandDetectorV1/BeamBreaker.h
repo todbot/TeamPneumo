@@ -30,13 +30,14 @@
 #ifndef BeamBreaker_h
 #define BeamBreaker_h
 
+const boolean cameraFlashCheck = true;
+
 const int changeType = CHANGE;  // can be RISING, CHANGE or FALLING
 
-volatile unsigned long detectAMillis;
-volatile unsigned long detectBMillis;
+volatile unsigned long detectAMicros; // microsecond timestamp of A-ring event 
+volatile unsigned long detectBMicros; // microsecond timestamp of A-ring event 
 
-volatile unsigned int cnt;
-volatile unsigned char type;  // super hack, heck all of these vars are
+volatile unsigned int cnt;  // simple count of events
 
 typedef void (*function)(void);  // define type "function" as a no-arg func ptr
 
@@ -44,37 +45,41 @@ function eventFunc;
 function eventAFunc;
 function eventBFunc;
 
+// bitfield holder for testing camera flash attempt at triggering
+volatile byte cftest;
+
+
 // internal func for pinchange int, must be fast!
 // first sensor ring
 void BeamBreaker_detectA0()
 {
-  detectAMillis = millis();
-  type = '0';
+  detectAMicros = micros();
   cnt++;
+  cftest |= _BV(0);
 }
 // internal func for pinchange int, must be fast!
 // first sensor ring
 void BeamBreaker_detectA1()
 {
-  detectAMillis = millis();
-  type = '1';
+  detectAMicros = micros();
   cnt++;
+  cftest |= _BV(1);
 }
 // internal func for pinchange int, must be fast!
 // second sensor ring
 void BeamBreaker_detectB0()
 {
-  detectBMillis = millis();
-  type = '0';
+  detectBMicros = micros();
   cnt++;
+  cftest |= _BV(2);
 }
 // internal func for pinchange int, must be fast!
 // second sensor ring
 void BeamBreaker_detectB1()
 {
-  detectBMillis = millis();
-  type = '1';
+  detectBMicros = micros();
   cnt++;
+  cftest |= _BV(3);
 }
 
 // put this in setup()
@@ -104,7 +109,6 @@ void BeamBreaker_begin( function anyeventfunc,
   digitalWrite(irDetectB0Pin, HIGH); // internal pullup
   digitalWrite(irDetectB1Pin, HIGH); // internal pullup
 
-
   PCintPort::attachInterrupt(irDetectA0Pin, BeamBreaker_detectA0,changeType); 
   PCintPort::attachInterrupt(irDetectA1Pin, BeamBreaker_detectA1,changeType); 
   PCintPort::attachInterrupt(irDetectB0Pin, BeamBreaker_detectB0,changeType); 
@@ -115,27 +119,57 @@ void BeamBreaker_begin( function anyeventfunc,
   eventBFunc = eventBfunc;
 }
 
+// enable all IR LEDs
+void BeamBreaker_enableAllIR()
+{
+  digitalWrite( irEnableA0Pin, HIGH ); // turn on LEDA0
+  digitalWrite( irEnableA1Pin, HIGH ); // turn on LEDA1
+  digitalWrite( irEnableB0Pin, HIGH ); // turn on LEDB0
+  digitalWrite( irEnableB1Pin, HIGH ); // turn on LEDB1
+}
 
 // call this regularly in loop()
 // FIXME: this sucks
 void BeamBreaker_check()
 {
-  if( detectAMillis || detectBMillis ) {
-    Serial.println("any");
+  // camera flash detector, v2
+  if( cameraFlashCheck ) {
+    if( (cftest == 0b1111) ||  // all triggered
+        (cftest == 0b1101) ||  // all one ring, one other ring
+        (cftest == 0b1110) || 
+        (cftest == 0b1011) ||  // all one ring, one other ring
+        (cftest == 0b0111) || 
+        (detectAMicros!=0 && (abs(detectAMicros - detectBMicros)< 1000) ) ) {
+      cftest = 0;
+      detectAMicros = 0;
+      detectBMicros = 0;
+      Serial.println("** Camera Flash Detected **");
+      return;
+    } 
+  }
+
+  if( detectAMicros || detectBMicros ) {
+    //Serial.println("any");
+    if( debug > 2 ) {
+      Serial.print(detectAMicros); Serial.print('-');
+      Serial.print(detectBMicros); Serial.print('=');
+      Serial.println( detectBMicros-detectAMicros );
+      Serial.print("cftest: ");
+      Serial.println(cftest, BIN);
+    }
+    cftest = 0;
     if( eventFunc != NULL ) eventFunc();
   }
 
-  if( detectAMillis ) { 
-    Serial.println("A");
+  if( detectAMicros ) { 
+    //Serial.println("A");
     if( eventAFunc != NULL ) eventAFunc();
-    detectAMillis = 0;
-    type = '.';
+    detectAMicros = 0;
   }
-  if( detectBMillis ) { 
-    Serial.println("B");
+  if( detectBMicros ) { 
+    //Serial.println("B");
     if( eventBFunc != NULL ) eventBFunc();
-    detectBMillis = 0;
-    type = '.';
+    detectBMicros = 0;
   }
   
 }
