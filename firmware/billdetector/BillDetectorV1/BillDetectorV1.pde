@@ -1,7 +1,7 @@
 /**
  *
- * BillDetectorV1 -- Bill detector, bell ringer, & spinnybit twirler for
- *                   Cash Machine
+ * BillDetectorV1a -- Bill detector, bell ringer, & spinnybit twirler for
+ *                    Cash Machine
  *     - for use with the 'billdetector1e' Arduino shield
  *
  * 2011, TeamPneumo, Tod E. Kurt, http://todbot.com/blog/
@@ -21,11 +21,12 @@
 
 #include "./SoftTone.h"           // include for hacky sount library
 #include "./FreqOutT2.h"          // pseudo-lib for 38kHz PWM output
-#include "./TimePin.h"            // pseudo-lib of for pin timing
 
 #include "./EventFuse.h"
-#include "./SoftwareServo.h"
 
+#include <Servo.h>
+
+const byte debug = 1;
 
 // Pins that are used on the shield
 
@@ -67,8 +68,8 @@ const int bellringerPin = servo0Pin;
 const int spinnybitPin  = servo1Pin;
 const int blinkmPin     = servo2Pin;
 
-SoftwareServo bellringer;
-SoftwareServo spinnybit;
+Servo bellringer;
+Servo spinnybit;
 
 
 //
@@ -90,12 +91,14 @@ void setup()
   BeamBreaker_begin( beamBreak, beamABreak, beamBBreak ); 
 
   Serial.begin(19200);
-  Serial.println( "BillDetectorV1" );
+  Serial.println( "BillDetectorV1b" );
 
   FreqOutT2_setFreq( IRFREQ_HZ, IRFREQ_DUTY );
   FreqOutT2_on();  // and _off() to turn off
 
   fanfare();
+  
+  BeamBreaker_enableAllIR();
 
   Serial.println( "Ready.");
 }
@@ -107,15 +110,16 @@ void loop()
 {
   BeamBreaker_check();
 
-  SoftwareServo::refresh();
+  //spinnybit.write( Easing::easeInOutCubic(pos, 0, 140, dur));
+  //SoftwareServo::refresh();
 
   delay(1); // this makes event fuse time step mean "1 msec", FIXME
   //delayMicroseconds(100);
   //unsigned long m = millis();
   //if( m > lastMillis ) {
-    eventFuse.burn(1);
-    //  lastMillis = m;
-    //}
+  eventFuse.burn(1);
+  //  lastMillis = m;
+  //}
 }
 
 //--------------------------------------------------------
@@ -131,18 +135,15 @@ boolean doingThings = false;  // used by event system to track
 //boolean doThingsReset = true;
 boolean doThingsReset = false;
 
-boolean alreadyRinging = false;
 
 // called at beginning of doing things
 void doThingsStart()
 {
-  Serial.println("doThingsStart");
+  if( debug > 0 ) Serial.println("doThingsStart");
 
   // deal with bell ringer
-  //if( !alreadyRinging ) {
-    bellringer.write(180);
-    alreadyRinging = true;
-    //}
+  bellringer.attach( bellringerPin );
+  bellringer.write( 180 );
 
   // deal with blinkm
   digitalWrite( blinkmPin, HIGH );
@@ -151,14 +152,11 @@ void doThingsStart()
 // called at end of doing things
 void doThingsEnd()
 {
-  Serial.println("doThingsEnd");
+  if( debug >0 ) Serial.println("doThingsEnd");
 
-  //if( sliceCount == sliceCountMax ) {
-    alreadyRinging = false;
-    // deal with bell ringer
-    bellringer.write( 90 );
-    bellringer.disable();
-    //}
+  // deal with bell ringer
+  bellringer.write( 90 );
+  bellringer.detach();
 
   // deal with spinny bits
   spinnybit.write( 84 );
@@ -170,10 +168,12 @@ void doThingsEnd()
 // called every sliceDur duration for sliceCountMax times
 void doThingsTick() 
 {
-  Serial.print("doThingsTick: ");
-  Serial.print( sliceCount );
-  Serial.print(" msec: ");
-  Serial.println( doingThingsMillis );
+  if( debug > 1 ) {
+    Serial.print("doThingsTick: ");
+    Serial.print( sliceCount );
+    Serial.print(" msec: ");
+    Serial.println( doingThingsMillis );
+  }
   
   // deal with bell ringer
   if( sliceCount == 1 ) 
@@ -203,7 +203,7 @@ void thingsFuse(FuseID fuse, int userData)
 // called by BeamBreaker when any beam break occurs
 void beamBreak()
 {
-  Serial.println("BREAK!");
+  if( debug > 0 ) Serial.println("BREAK!");
   if( doingThings && doThingsReset ) {
     doThingsEnd();
   }
@@ -219,22 +219,16 @@ void beamBreak()
 void beamABreak()
 {
   digitalWrite( ledStatusPin, HIGH);
-  
   playTone( beepPin, NOTE_C, 20 );
-
   digitalWrite( ledStatusPin, LOW);
-
 }
 
 // for testing, not for normal use
 void beamBBreak()
 {
   digitalWrite( ledStatusPin, HIGH);
-  
   playTone( beepPin, NOTE_C1, 20 );
-
   digitalWrite( ledStatusPin, LOW);
-
 }
 
 // just a silly thing to let you know it's online

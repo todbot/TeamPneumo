@@ -119,6 +119,14 @@ void BeamBreaker_begin( function anyeventfunc,
   eventBFunc = eventBfunc;
 }
 
+// enable all IR LEDs
+void BeamBreaker_enableAllIR()
+{
+  digitalWrite( irEnableA0Pin, HIGH ); // turn on LEDA0
+  digitalWrite( irEnableA1Pin, HIGH ); // turn on LEDA1
+  digitalWrite( irEnableB0Pin, HIGH ); // turn on LEDB0
+  digitalWrite( irEnableB1Pin, HIGH ); // turn on LEDB1
+}
 
 // call this regularly in loop()
 // FIXME: this sucks
