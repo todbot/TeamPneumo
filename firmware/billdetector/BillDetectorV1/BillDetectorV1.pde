@@ -179,7 +179,7 @@ void doThingsTick()
   
   // deal with bell ringer
   if( sliceCount == 1 ) 
-  bellringer.write( 90 );
+    bellringer.write( 90 );
 
   // deal with blinkm 
   if( doingThingsMillis > 2000 ) {
