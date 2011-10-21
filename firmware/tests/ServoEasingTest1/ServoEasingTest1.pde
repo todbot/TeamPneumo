@@ -1,4 +1,9 @@
 //
+// NOTE NOTE NOTE
+//  this now lives at its own repo in 
+//    https://github.com/todbot/ServoEaser
+// NOTE NOTE NOTE
+//
 // ServoEasingTest1.pde -- first attempt at making Easing library usable
 //                         in a non-blocking context
 //
