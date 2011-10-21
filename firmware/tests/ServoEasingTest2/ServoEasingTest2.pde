@@ -84,38 +84,7 @@ void loop()
     servoEaser.easeTo( 45, 5000 );
   }
   */
-
     
 }
 
 
-
-
-
-
-// -------------------------------------------------------------------
-
-/*
-// from Easing library example
-void easingTest()
-{
-  //servo1.write(Easing::easeInOutCubic(pos, 0, 140, dur));
-  int dur = 100; //duration is 100 loops
-  for (int pos=0; pos<dur; pos++){
-    //move servo from 0 and 140 degrees forward
-    servo1.write(Easing::easeInOutCubic(pos, 0, 140, dur));
-    delay(15); //wait for the servo to move
-  }
-  
-  delay(1000); //wait a second, then move back using "bounce" easing
-  
-  for (int pos=0; pos<dur; pos++){
-    //move servo -140 degrees from position 140 (back to 0)
-    servo1.write(Easing::easeInOutCubic(pos, 140, -140, dur));
-    //servo1.write(Easing::easeInOutBounce(pos, 140, -140, dur));
-    delay(15);
-  }
-
-  delay(1000);
-}
-*/
