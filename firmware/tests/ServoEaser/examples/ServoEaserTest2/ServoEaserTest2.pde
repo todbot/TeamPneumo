@@ -1,6 +1,6 @@
 //
-// ServoEasingTest2.pde -- library-based attempt at doing easing
-//                         in a non-blocking context
+// ServoEaserTest2.pde -- more complex example of using ServoEaser 
+//                        this time with move lists
 //
 // 2011, TeamPneumo, Tod E. Kurt, http://todbot.com/blog/
 //
@@ -22,10 +22,11 @@ ServoEaser servoEaser;
 // configurable list of servo moves
 int myServoMovesCount = 8;
 ServoMove myServoMoves[] = {
+// angle, duration
   {  0, 2000},
   {180, 2000},
-  {  0, 2000},
-  {180, 2000},
+  {  0, 1500},
+  {180, 1500},
   { 90, 2000},
   {180, 2000},
   { 45, 3000},
