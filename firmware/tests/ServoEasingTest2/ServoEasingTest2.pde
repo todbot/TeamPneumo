@@ -8,17 +8,16 @@
 
 #include <Servo.h>
 #include "./ServoEaser.h"
-#include <Easing.h>
+//#include <Easing.h>
 
 const int ledPin   = 13; 
 const int servoPin = 7;
 
-
-// begin these all go in a class
 Servo servo1; 
 
 int servoFrameMillis = 10;  // minimum time between servo updates
 
+ServoEaser servoEaser;
 
 // configurable list of servo moves
 int myServoMovesCount = 8;
@@ -32,8 +31,6 @@ ServoMove myServoMoves[] = {
   { 45, 3000},
   {135, 3000},
 };
-
-ServoEaser servoEaser;
 
 
 // from Easing::linearTween()
@@ -65,10 +62,11 @@ void setup()
   //servoEaser.setEasingFunc( linearTween );
   //servoEaser.setEasingFunc( easeInOutQuart );
   // can even use Easing library if you want
-  servoEaser.setEasingFunc( Easing::easeInOutElastic );
+  //servoEaser.setEasingFunc( Easing::easeInOutExpo );
 
   Serial.println("ServoEasingTest2 ready");
 
+  // can do manual easing instead of a moves list
   //servoEaser.easeTo( 180, 5000);
 }
 
