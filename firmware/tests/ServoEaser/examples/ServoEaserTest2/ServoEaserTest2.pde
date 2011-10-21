@@ -7,7 +7,7 @@
 //
 
 #include <Servo.h>
-#include "./ServoEaser.h"
+#include "ServoEaser.h"
 //#include <Easing.h>
 
 const int ledPin   = 13; 
@@ -27,7 +27,7 @@ ServoMove myServoMoves[] = {
   {180, 2000},
   {  0, 1500},
   {180, 1500},
-  { 90, 2000},
+  { 90,  800},
   {180, 2000},
   { 45, 3000},
   {135, 3000},

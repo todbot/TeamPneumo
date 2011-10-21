@@ -110,6 +110,7 @@ void setup()
 //
 void loop()
 {
+
   servoEaser.update();
 
 }

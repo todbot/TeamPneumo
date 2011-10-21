@@ -19,18 +19,21 @@
 #include <Servo.h>
 
 typedef struct _servoMove {
-  int pos;     // position of servo in degrees
-  int dur;     // duration in milliseconds to get to and stay at that position
+    int pos;   // position of servo in degrees
+    int dur;   // duration in milliseconds to get to and stay at that position
 } ServoMove;
 
 
-// define type "EasingFunc"
-//
+// define "EasingFunc" callback function
+// you can make your own of these to use
 // t: current time, b: beginning value, c: change in value, d: duration
 // t and d can be in frames or seconds/milliseconds
 //
 typedef float (*EasingFunc)(float t, float b, float c, float d); 
 
+// define "ArrivedFunc" to be called when servo arrives at position
+// arguments provided are: currPos of servo & movesIndex of move list (if appl)
+typedef void (*ArrivedFunc)(int currPos, int movesIndex);
 
 class ServoEaser 
 {
@@ -53,8 +56,10 @@ private:
     ServoMove* moves; // list of user-supplied servo moves
 
     EasingFunc easingFunc; // func that describes tween motion
-
-    boolean running; // 
+    ArrivedFunc arrivedFunc; // func to call when servo arrives at dest
+    
+    boolean running;  // is servo easer running?
+    boolean arrived;  // has servo arrived at its destination
 
     void getNextPos();
 
@@ -75,6 +80,11 @@ public:
 
     // you can set your own easing function
     void setEasingFunc( EasingFunc );
+    // can optionally set a function to call when servo arrives at dest
+    void setArrivedFunc( ArrivedFunc func );
+
+    boolean hasArrived();
+    boolean isRunning();
 
 };
 

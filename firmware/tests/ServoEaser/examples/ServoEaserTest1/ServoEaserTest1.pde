@@ -33,6 +33,7 @@ void setup()
   Serial.println("ServoEaserTest1 ready");
 
   // can do manual easing instead of a moves list
+  //                angle, duration 
   servoEaser.easeTo( 180, 5000);
 }
 

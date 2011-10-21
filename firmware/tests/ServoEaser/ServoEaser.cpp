@@ -12,18 +12,19 @@
 //
 
 #include "ServoEaser.h"
+#include <math.h>
 
 // default easing function
 // this is from Easing::easeInOutCubic()
 // t: current time, b: beginning value, c: change in value, d: duration
 // t and d can be in frames or seconds/milliseconds
-float easeInOutCubic(float t, float b, float c, float d)
+float ServoEaser_easeInOutCubic(float t, float b, float c, float d)
 {
     if ((t/=d/2) < 1) return c/2*t*t*t + b;
 	return c/2*((t-=2)*t*t + 2) + b;
 }
 
-
+// set up an easer with a servo and a moves list
 void ServoEaser::begin(Servo s, int frameTime, 
                        ServoMove* mlist, int mcount)
 {
@@ -32,23 +33,26 @@ void ServoEaser::begin(Servo s, int frameTime,
     moves = mlist;
     movesCount = mcount;
 
-    easingFunc = easeInOutCubic;
+    easingFunc = ServoEaser_easeInOutCubic;
+    arrivedFunc = NULL;
 
     reset();
 }
 
+// set up an easer with just a servo and a starting position
 void ServoEaser::begin(Servo s, int frameTime, int pos )
 {
     servo = s;
     frameMillis = frameTime;
     startPos = pos;
 
-    easingFunc = easeInOutCubic;
+    easingFunc = ServoEaser_easeInOutCubic;
+    arrivedFunc = NULL;
 
     reset();
 }
 
-// warning only applicable when doing a moves list
+// reset easer to initial conditions, does not nuke easingFunc or arrivedFunc
 void ServoEaser::reset()
 {
     movesIndex = 0;
@@ -72,6 +76,11 @@ void ServoEaser::setEasingFunc( EasingFunc func )
     easingFunc = func;
 }
 
+void ServoEaser::setArrivedFunc( ArrivedFunc func ) 
+{
+    arrivedFunc = func;
+}
+
 //
 void ServoEaser::setMovesList( ServoMove* mlist, int mcount )
 {
@@ -80,9 +89,28 @@ void ServoEaser::setMovesList( ServoMove* mlist, int mcount )
     reset();
 }
 
-//
+// manual, non-moves list, control of easer position
+void ServoEaser::easeTo( int pos, int dur )
+{
+    movesCount = 0;  // no longer doing moves list
+    startPos = currPos;
+    changePos = pos - startPos;
+    durMillis = dur;
+    tickCount = durMillis / frameMillis;
+    tick = 0;
+    arrived = false;
+}
+
+// used internally to select next servo position
 void ServoEaser::getNextPos()
 {
+    arrived = true;
+    if( arrivedFunc != NULL ) { arrivedFunc( currPos, movesIndex ); }
+
+    if( movesCount==0 ) { // not in a moves list
+        return;
+    }
+
     movesIndex++;
     if( movesIndex == movesCount ) {
         movesIndex = 0;
@@ -94,41 +122,23 @@ void ServoEaser::getNextPos()
 
     tickCount = durMillis / frameMillis;
     tick = 0;
+    arrived = false;
 }
 
-//
-void ServoEaser::easeTo( int pos, int dur )
-{
-    movesCount = 0;  // no longer doing moves list
-    startPos = currPos;
-    changePos = pos - startPos;
-    durMillis = dur;
-    tickCount = durMillis / frameMillis;
-    tick = 0;
-}
-
-//  FIXME: assumes running from a moves list
+// call this regularly in loop()
 void ServoEaser::update()
 {
-    if( (millis() - lastMillis) < frameMillis ) {  // time yet?
+    if( ((millis() - lastMillis) < frameMillis) || !running ) {  // time yet?
         return;
     }
     lastMillis = millis();
 
-    if( running ) {
-
-        currPos = easingFunc( tick, startPos, changePos, tickCount );
-
-        tick++;
-        if( tick == tickCount ) { // time for new position
-            if( movesCount!=0 ) {
-                getNextPos();
-            } // or maybe we're just done
-            else { 
-                tick--; // FIXME: hack easingFunc goes nuts
-            }
-        }
-    } // if(!running) still hold servo position
+    currPos = easingFunc( tick, startPos, changePos, tickCount );
+    
+    if( !arrived ) tick++;
+    if( tick == tickCount ) { // time for new position
+        getNextPos(); 
+    }
     servo.write( currPos );
 }
 
@@ -142,7 +152,16 @@ void ServoEaser::stop()
 {
     running = false;
 }
-
+//
+boolean ServoEaser::isRunning()
+{ 
+    return running;
+}
+//
+boolean ServoEaser::hasArrived()
+{ 
+    return arrived;
+}
 
  
 
