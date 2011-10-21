@@ -94,10 +94,7 @@ void BeamBreaker_begin( function anyeventfunc,
   pinMode( irEnableB0Pin,OUTPUT);
   pinMode( irEnableB1Pin,OUTPUT);
 
-  digitalWrite( irEnableA0Pin, LOW ); // turn off LEDA0
-  digitalWrite( irEnableA1Pin, LOW ); // turn off LEDA1
-  digitalWrite( irEnableB0Pin, LOW ); // turn off LEDB0
-  digitalWrite( irEnableB1Pin, LOW ); // turn off LEDB1
+  BeamBreaker_disableAllIR();
 
   pinMode( irDetectA0Pin,  INPUT);
   pinMode( irDetectA1Pin,  INPUT); 
@@ -117,6 +114,15 @@ void BeamBreaker_begin( function anyeventfunc,
   eventFunc  = anyeventfunc;
   eventAFunc = eventAfunc;
   eventBFunc = eventBfunc;
+}
+
+// disable all IR LEDs
+void BeamBreaker_disableAllIR()
+{
+  digitalWrite( irEnableA0Pin, LOW ); // turn off LEDA0
+  digitalWrite( irEnableA1Pin, LOW ); // turn off LEDA1
+  digitalWrite( irEnableB0Pin, LOW ); // turn off LEDB0
+  digitalWrite( irEnableB1Pin, LOW ); // turn off LEDB1
 }
 
 // enable all IR LEDs
