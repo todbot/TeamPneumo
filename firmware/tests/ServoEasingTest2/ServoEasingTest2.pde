@@ -1,5 +1,5 @@
 //
-// ServoEasingTest1.pde -- first attempt at making Easing library usable
+// ServoEasingTest2.pde -- library-based attempt at doing easing
 //                         in a non-blocking context
 //
 // 2011, TeamPneumo, Tod E. Kurt, http://todbot.com/blog/
@@ -8,8 +8,7 @@
 
 #include <Servo.h>
 #include "./ServoEaser.h"
-
-const int debug = 1;
+#include <Easing.h>
 
 const int ledPin   = 13; 
 const int servoPin = 7;
@@ -18,7 +17,7 @@ const int servoPin = 7;
 // begin these all go in a class
 Servo servo1; 
 
-int servoFrameTime = 10;  // minimum time between servo updates
+int servoFrameMillis = 10;  // minimum time between servo updates
 
 
 // configurable list of servo moves
@@ -35,6 +34,7 @@ ServoMove myServoMoves[] = {
 };
 
 ServoEaser servoEaser;
+
 
 // from Easing::linearTween()
 float linearTween (float t, float b, float c, float d) {
@@ -54,19 +54,40 @@ void setup()
 
   servo1.attach( servoPin );
 
-  servoEaser.begin( servo1, servoFrameTime, myServoMoves, myServoMovesCount );
-  servoEaser.setEasingFunc( linearTween );
-  servoEaser.setEasingFunc( easeInOutQuart );
+  // can begin with a list of servo moves
+  //servoEaser.begin( servo1, servoFrameMillis,myServoMoves,myServoMovesCount);
+  // or begin with just a framerate and starting position
+  servoEaser.begin( servo1, servoFrameMillis, 0 );
+  // and then set moves list later (or not at all)
+  servoEaser.setMovesList( myServoMoves, myServoMovesCount );
+
+  // ServoEaser defaults to easeInOutCubic() but you can change it
+  //servoEaser.setEasingFunc( linearTween );
+  //servoEaser.setEasingFunc( easeInOutQuart );
+  // can even use Easing library if you want
+  servoEaser.setEasingFunc( Easing::easeInOutElastic );
 
   Serial.println("ServoEasingTest2 ready");
+
+  //servoEaser.easeTo( 180, 5000);
 }
 
 //
 void loop()
 {
-  //easingTest();
   servoEaser.update();
 
+  /*
+  // can do manual easing too
+  if( millis() > 6000 && millis() < 6005 ) { 
+    servoEaser.easeTo( 0, 3000 );
+  }
+  if( millis() > 10000 && millis() < 10005 ) {
+    servoEaser.easeTo( 45, 5000 );
+  }
+  */
+
+    
 }
 
 

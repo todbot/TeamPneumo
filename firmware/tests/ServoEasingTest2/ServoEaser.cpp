@@ -5,6 +5,7 @@
 // -- http://portfolio.tobiastoft.dk/331886/Easing-library-for-Arduino
 // -- http://jesusgollonet.com/processing/pennerEasing/
 // -- http://robertpenner.com/easing/
+// -- http://robertpenner.com/easing/easing_demo.html
 //
 // 2011, TeamPneumo, Tod E. Kurt, http://todbot.com/blog/
 // 
@@ -12,21 +13,17 @@
 
 #include "ServoEaser.h"
 
-#include "WProgram.h"
-
+// default easing function
 // this is from Easing::easeInOutCubic()
+// t: current time, b: beginning value, c: change in value, d: duration
+// t and d can be in frames or seconds/milliseconds
 float easeInOutCubic(float t, float b, float c, float d)
 {
     if ((t/=d/2) < 1) return c/2*t*t*t + b;
 	return c/2*((t-=2)*t*t + 2) + b;
 }
 
-void ServoEaser::setEasingFunc( EasingFunc func )
-{
-    easingFunc = func;
-}
 
-// FIXME: assumes a moves list, need a begin() with no moves list
 void ServoEaser::begin(Servo s, int frameTime, 
                        ServoMove* mlist, int mcount)
 {
@@ -35,24 +32,56 @@ void ServoEaser::begin(Servo s, int frameTime,
     moves = mlist;
     movesCount = mcount;
 
-    movesIndex = 0;
+    easingFunc = easeInOutCubic;
+
+    reset();
+}
+
+void ServoEaser::begin(Servo s, int frameTime, int pos )
+{
+    servo = s;
+    frameMillis = frameTime;
+    startPos = pos;
 
     easingFunc = easeInOutCubic;
 
-    startPos  = moves[ movesIndex ].pos;  // get first position
-    durMillis = moves[ movesIndex ].dur;
+    reset();
+}
 
+// warning only applicable when doing a moves list
+void ServoEaser::reset()
+{
+    movesIndex = 0;
+
+    if( movesCount > 0 ) {
+        startPos  = moves[ movesIndex ].pos;  // get first position
+        durMillis = moves[ movesIndex ].dur;
+    }
     currPos  = startPos;  // get everyone in sync
     changePos = 0; 
 
     tickCount = durMillis / frameMillis;
     tick = 0;
-
-    servo.write( startPos );  
+    
+    running = true;
 }
 
 //
-void ServoEaser::getNewPos()
+void ServoEaser::setEasingFunc( EasingFunc func )
+{
+    easingFunc = func;
+}
+
+//
+void ServoEaser::setMovesList( ServoMove* mlist, int mcount )
+{
+    moves = mlist;
+    movesCount = mcount;
+    reset();
+}
+
+//
+void ServoEaser::getNextPos()
 {
     movesIndex++;
     if( movesIndex == movesCount ) {
@@ -68,38 +97,52 @@ void ServoEaser::getNewPos()
 }
 
 //
-// t: current time, b: beginning value, c: change in value, d: duration
-// t and d can be in frames or seconds/milliseconds
-//
-/*
-float ServoEaser::easingFunc(float t, float b, float c, float d)
+void ServoEaser::easeTo( int pos, int dur )
 {
-    // this is Easing::easeInOutCubic()
-    if ((t/=d/2) < 1) return c/2*t*t*t + b;
-	return c/2*((t-=2)*t*t + 2) + b;
+    movesCount = 0;  // no longer doing moves list
+    startPos = currPos;
+    changePos = pos - startPos;
+    durMillis = dur;
+    tickCount = durMillis / frameMillis;
+    tick = 0;
 }
-*/
 
 //  FIXME: assumes running from a moves list
 void ServoEaser::update()
 {
-    if( millis() - lastMillis >= frameMillis ) { 
-        lastMillis = millis();
+    if( (millis() - lastMillis) < frameMillis ) {  // time yet?
+        return;
+    }
+    lastMillis = millis();
 
-        currPos = easingFunc( tick, 
-                              startPos, 
-                              changePos, 
-                              tickCount );
+    if( running ) {
 
-        servo.write( currPos );
+        currPos = easingFunc( tick, startPos, changePos, tickCount );
 
         tick++;
         if( tick == tickCount ) { // time for new position
-            getNewPos();
+            if( movesCount!=0 ) {
+                getNextPos();
+            } // or maybe we're just done
+            else { 
+                tick--; // FIXME: hack easingFunc goes nuts
+            }
         }
-    }
-
+    } // if(!running) still hold servo position
+    servo.write( currPos );
 }
+
+//
+void ServoEaser::start()
+{
+    running = true;
+}
+//
+void ServoEaser::stop()
+{
+    running = false;
+}
+
 
  
 
