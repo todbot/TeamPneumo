@@ -1,6 +1,6 @@
 /**
  *
- * HandDetectorV1b -- Bill detector, bell ringer, & spinnybit twirler for
+ * HandDetectorV1c -- Bill detector, bell ringer, & spinnybit twirler for
  *                   Cash Machine
  *     - for use with the 'billdetector1e' Arduino shield
  *     - and the modded "Long Ranger" transmitter shield
@@ -11,7 +11,7 @@
  *
  *
  * On/Off button functionality
- * - ON pressed at least one times
+ * - ON pressed 3 times
  * - OFF pressed 3 times
  * 
  *
@@ -39,8 +39,8 @@
 const int debug = 1;
 
 const long suckDurationMillis = 12000;  // time
-const long suckOnButtMillis   = 1000;
-const long suckOffButtMillis  = 1000;
+const long suckOnButtMillis   = 700;
+const long suckOffButtMillis  = 700;
 
 
 // Pins that are used on the shield
@@ -90,6 +90,7 @@ int sliceDur =  50;  // duration of timeslice within doing things
 int sliceCount;      // counter of slices, goes from 0 to sliceCountMax
 int doingThingsMillis; // counter in millis from 0 to duration
 int sliceCountMax = duration/sliceDur; 
+int suckSliceCountMax = (suckDurationMillis)/sliceDur;
 boolean doingThings = false;  // used by event system to track 
 //boolean doThingsReset = true;
 boolean doThingsReset = false;
@@ -104,21 +105,21 @@ enum SuckButton {
 void pushRemoteButton( int suckButton )
 {
   if( suckButton == suckPushOn ) {
-    Serial.println("ON ");
+    if(debug>1) Serial.println("ON ");
     digitalWrite( offButtonPin, LOW );
     delay(10);
     digitalWrite( onButtonPin, HIGH );
     delay(10);
   } 
   else if( suckButton == suckPushOff ) {
-    Serial.println("OFF");
+    if(debug>1) Serial.println("OFF");
     digitalWrite( onButtonPin, LOW );
     delay(10);
     digitalWrite( offButtonPin, HIGH );
     delay(10);
   }
   else { // suckPushNone
-    Serial.println("---");
+    if(debug>1) Serial.println("---");
     digitalWrite( onButtonPin, LOW );
     digitalWrite( offButtonPin, LOW );
     delay(10);
@@ -139,8 +140,8 @@ void setup()
 
   BeamBreaker_begin( beamBreak, beamABreak, beamBBreak ); 
 
-  Serial.begin(19200);
-  Serial.println( "HandDetectorV1b" );
+  Serial.begin(57600);
+  Serial.println( "HandDetectorV1c" );
 
   FreqOutT2_setFreq( IRFREQ_HZ, IRFREQ_DUTY );
   FreqOutT2_on();  // and _off() to turn off
@@ -170,8 +171,9 @@ void checkTestButton()
   //if( digitalRead( pushButton ) == LOW ) {
   //  beamBreak(); // FIXME: hack
   //}
-  if( (millis() > 3000 && millis() < 3002)  || 
-      (millis() > 5000 && millis() < 5002) ) {
+  if( (millis() > 3000 && millis() < 3002) 
+      //|| (millis() > 5000 && millis() < 5002)
+      ) {
     beamBreak();
   }
 }
@@ -197,6 +199,7 @@ void doThingsEnd()
   digitalWrite( ringlightPin, LOW);
 }
 
+
 // called every sliceDur duration for sliceCountMax times
 void doThingsTick() 
 {
@@ -208,9 +211,24 @@ void doThingsTick()
   }
   
   // deal with ringlight
-  int lightval = 255-(sliceCount*15);  // wub wub wub
-  //int lightval = (255 - (sliceCount*15)) * (sliceCountMax * sliceCount/sliceCountMax);
-  analogWrite( ringlightPin, lightval);
+  /*
+  int lightidx = 255 - 255 * sliceCount / suckSliceCountMax;
+  Serial.print("idx:"); Serial.println(lightidx);
+  int lightval = pgm_read_byte_near( led_breathe_curve + lightidx );
+  */
+
+  int wrapval = 16 - (sliceCount*8/suckSliceCountMax);
+  byte lightval = 255-(sliceCount*wrapval);  // wub wub wub
+  lightval = 0.5 * (float)lightval *  (1.0-(float)sliceCount/suckSliceCountMax);
+
+
+  if( doingThingsMillis < suckDurationMillis ) {
+    Serial.println(lightval,DEC);
+    analogWrite( ringlightPin, lightval);
+  } else { 
+    // turn off ringlight
+    digitalWrite( ringlightPin, LOW);
+  }
 
   // deal with suck on/off trigger
   // FIXME: this huge if-then tree is a hack
@@ -239,11 +257,19 @@ void doThingsTick()
            doingThingsMillis <  (4*suckOnButtMillis) ) {
     pushRemoteButton( suckPushNone ); // end turn-on button press
   }
+  // third ON button press
+  else if( doingThingsMillis >= (4*suckOnButtMillis) &&
+           doingThingsMillis <  (5*suckOnButtMillis) ) {
+    pushRemoteButton( suckPushOn ); // begin turn-on button press
+  }
+  else if( doingThingsMillis >= (5*suckOnButtMillis) &&
+           doingThingsMillis <  (6*suckOnButtMillis) ) {
+    pushRemoteButton( suckPushNone ); // end turn-on button press
+  }
   
   // suck time up
   else if( doingThingsMillis > suckDurationMillis ) { 
 
-    digitalWrite( ringlightPin, LOW);
     unsigned long suckOffMillis = 
       doingThingsMillis - (suckDurationMillis+(4*suckOnButtMillis));
     // first OFF button press
@@ -255,6 +281,7 @@ void doThingsTick()
              suckOffMillis <  (2*suckOffButtMillis) ) {
       pushRemoteButton( suckPushNone ); // end turn-off button press
     }
+
     // second OFF button press
     else if( suckOffMillis >= (2*suckOffButtMillis) &&
              suckOffMillis <  (3*suckOffButtMillis) ) {
