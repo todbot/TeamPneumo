@@ -137,7 +137,8 @@ void loop()
 // "doThings" begin
 //--------------------------------------------------------
 
-int duration = 8000; // total duration of doing things, in millis; 
+//int duration = 12000; // total duration of doing things, in millis; 
+int duration = 12000; // total duration of doing things, in millis; 
 int sliceDur =  50;  // duration of timeslice within doing things
 int sliceCount;      // counter of slices, goes from 0 to sliceCountMax
 int doingThingsMillis; // counter in millis from 0 to duration
@@ -159,7 +160,11 @@ void doThingsStart()
   // deal with spinny bit
   // start playing a moves list on a particular servo
   //spinnybitEaser.play( spinnybitMoves,spinnybitMovesCount );
-  spinnybitEaser.easeTo( 80,1000);
+  if( 1 ) { 
+    spinnybitEaser.easeTo( 80,3000);
+  } else {
+    spinnybitEaser.easeTo( 80,6000);
+  }
   // this doesn't work, something wrong with 'movesRep' code
   //spinnybitEaser.play( spinnybitMoves,spinnybitMovesCount, 1 );
 
@@ -178,7 +183,7 @@ void doThingsEnd()
 
   // deal with spinny bits
   //spinnybitEaser.stop();
-  spinnybitEaser.easeTo(90,1000);  // FIXME: hack because play w/count fails
+  spinnybitEaser.easeTo(90,2000);  // FIXME: hack because play w/count fails
 
   // deal with blinkm
   digitalWrite( blinkmPin, LOW );
@@ -199,17 +204,32 @@ void doThingsTick()
     bellringer.write( 90 );
 
   // deal with blinkm 
-  if( doingThingsMillis > 2000 && doingThingsMillis < 2100 ) {
+  if( doingThingsMillis > 3000 ) {
     digitalWrite( blinkmPin, LOW);
-    Serial.println(">2000");
-    spinnybitEaser.easeTo( 100, 3000);
-  }
-  else if( doingThingsMillis > 5000 && doingThingsMillis < 5100 ) { 
-    Serial.println(">5000");
-    spinnybitEaser.easeTo( 85, 3000 );
   }
 
   // deal with spinnybit
+  if( 1 ) { 
+    if( doingThingsMillis > 4000 && doingThingsMillis < 4100 ) {
+      Serial.println(">2000");
+      spinnybitEaser.easeTo( 105, 3000);
+    }
+    else if( doingThingsMillis > 7000 && doingThingsMillis < 7100 ) { 
+      Serial.println(">5000");
+      spinnybitEaser.easeTo( 85, 3000 );
+    }
+  }
+  else {
+    if( doingThingsMillis > 6000 && doingThingsMillis < 6100 ) {
+      Serial.println(">6000");
+      spinnybitEaser.easeTo( 105, 6000);
+    }
+    else if( doingThingsMillis > 15000 && doingThingsMillis < 15100 ) { 
+      Serial.println(">15000");
+      spinnybitEaser.easeTo( 85, 15000 );
+    }
+  }    
+
   //spinnybit.write( 84+ (2*(sliceCountMax-sliceCount)/3));
   
 }
